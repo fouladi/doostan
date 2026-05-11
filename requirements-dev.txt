@@ -1,0 +1,9 @@
+# packages installed in 'dev' that you do not want installed in your
+# 'production' environment
+ruff
+ty
+pynvim
+doq
+pytest
+pytest-cov
+prek

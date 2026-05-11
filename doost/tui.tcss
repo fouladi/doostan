@@ -1,0 +1,184 @@
+Screen {
+    background: #101319;
+    color: #f3efe6;
+}
+
+AddressFormScreen,
+AddressDetailScreen,
+FileActionScreen,
+ConfirmScreen {
+    align: center middle;
+}
+
+#app-shell {
+    height: 1fr;
+    background: #18202b;
+}
+
+#sidebar {
+    width: 34;
+    min-width: 30;
+    padding: 1 2;
+    background: #171d26;
+    border-right: wide #2d3948;
+}
+
+#main-pane {
+    height: 1fr;
+    padding: 1;
+}
+
+.panel-title {
+    text-style: bold;
+    color: #f2b84b;
+    margin-bottom: 1;
+}
+
+#sidebar Input {
+    margin-bottom: 1;
+}
+
+.filter-row {
+    height: auto;
+    margin-bottom: 1;
+}
+
+.filter-row Input {
+    width: 1fr;
+    margin-right: 1;
+    margin-bottom: 0;
+}
+
+#filter-email,
+#filter-mobile,
+#filter-custom {
+    margin-right: 0;
+}
+
+.sidebar-actions {
+    height: auto;
+    margin-bottom: 1;
+}
+
+.sidebar-actions Button {
+    width: 1fr;
+    margin-right: 1;
+}
+
+.sidebar-actions Select {
+    width: 1fr;
+    margin-right: 1;
+}
+
+#export-menu {
+    margin-right: 0;
+}
+
+.panel-block {
+    margin-top: 1;
+    padding: 1;
+    min-height: 7;
+    border: round #314050;
+    background: #121821;
+}
+
+#toolbar {
+    height: auto;
+    margin-bottom: 1;
+}
+
+#toolbar Button {
+    width: auto;
+    margin-right: 1;
+}
+
+#addresses-table {
+    height: 1fr;
+    border: round #314050;
+    background: #121821;
+}
+
+#modal-dialog {
+    width: 72;
+    height: auto;
+    padding: 1 2;
+    background: #171d26;
+    border: thick #f2b84b;
+}
+
+.address-form,
+.details-dialog,
+.file-form {
+    grid-size: 1;
+    grid-gutter: 1;
+}
+
+.address-form Input,
+.details-dialog Static,
+.file-form Input,
+.file-form Select {
+    width: 1fr;
+}
+
+#detail-content {
+    width: 1fr;
+    padding: 1;
+    color: #f3efe6;
+    background: #121821;
+    border: round #314050;
+}
+
+#stats {
+    margin-top: 0;
+    color: #9cb2c8;
+}
+
+.confirm-dialog {
+    grid-size: 2;
+    grid-gutter: 1 2;
+    grid-rows: auto 3;
+    align: center middle;
+}
+
+.progress-dialog {
+    grid-size: 1;
+    grid-gutter: 1;
+    width: 68;
+    padding: 2 2;
+}
+
+#modal-title {
+    width: 1fr;
+    color: #f2b84b;
+    text-style: bold;
+    margin-bottom: 1;
+}
+
+#progress-subtitle {
+    width: 1fr;
+    color: #9cb2c8;
+    margin-bottom: 1;
+}
+
+#transfer-progress {
+    width: 1fr;
+    margin-bottom: 1;
+}
+
+#progress-status {
+    width: 1fr;
+    padding: 0 1;
+    color: #f3efe6;
+    background: #121821;
+    border: round #314050;
+}
+
+.dialog-buttons {
+    margin-top: 1;
+    height: auto;
+}
+
+.dialog-buttons Button {
+    width: 1fr;
+    margin-right: 1;
+}
