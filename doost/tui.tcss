@@ -43,16 +43,16 @@ ConfirmScreen {
     margin-bottom: 1;
 }
 
-.filter-row Input {
-    width: 1fr;
+.filter-row Select {
+    width: 15;
     margin-right: 1;
     margin-bottom: 0;
 }
 
-#filter-email,
-#filter-mobile,
-#filter-custom {
+.filter-row Input {
+    width: 1fr;
     margin-right: 0;
+    margin-bottom: 0;
 }
 
 .sidebar-actions {

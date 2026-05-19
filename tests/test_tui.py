@@ -42,7 +42,7 @@ def test_tui_crud_and_filter_flow(tmp_path: Path) -> None:
             assert "Example Person" in details
             assert "1990-01-02" in details
             assert "42 Example Street" in details
-            assert app.query_one("#details", Static).region.y < app.query_one("#filter-name", Input).region.y
+            assert app.query_one("#details", Static).region.y < app.query_one("#filter-value", Input).region.y
 
             await pilot.click("#edit")
             await pilot.pause(0.05)
@@ -60,24 +60,19 @@ def test_tui_crud_and_filter_flow(tmp_path: Path) -> None:
             await pilot.pause(0.05)
             assert not isinstance(app.screen, AddressDetailScreen)
 
-            app.query_one("#filter-name", Input).value = "Changed"
+            app.query_one("#filter-field", Select).value = "name"
+            app.query_one("#filter-value", Input).value = "Changed"
             app.refresh_table()
             await pilot.pause(0.05)
             assert table.row_count == 1
 
-            for widget_id in (
-                "#filter-name",
-                "#filter-email",
-                "#filter-birthday",
-                "#filter-phone",
-                "#filter-mobile",
-                "#filter-address",
-                "#filter-custom",
-            ):
-                app.query_one(widget_id, Input).value = ""
-            app.refresh_table()
+            app.query_one("#filter-field", Select).value = "email"
+            app.query_one("#filter-value", Input).value = "person@example.com"
+            await pilot.click("#clear-filters")
             await pilot.pause(0.05)
             assert table.row_count == 1
+            assert app.query_one("#filter-field", Select).value == "name"
+            assert app.query_one("#filter-value", Input).value == ""
 
             await pilot.click("#delete")
             await pilot.pause(0.05)

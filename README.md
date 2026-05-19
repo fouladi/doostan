@@ -1,20 +1,25 @@
 # Doostan
 
-Doostan is a terminal address book built around a local SQLite
-database. It uses a Textual TUI for browsing, filtering, editing,
-importing, and exporting contact data without relying on a cloud sync
-service.
+Doostan is a local-first terminal address book built around SQLite
+and [Textual](https://textual.textualize.io/). It lets you browse,
+search, edit, import, and export contact data without relying on a
+cloud sync service.
 
 The name `doostan` is Persian for `friends`.
 
-## Features
+## What It Does
 
 - Store addresses locally in `~/.doost.db`
-- Browse contacts in a Textual table with keyboard-driven navigation
-- Filter, add, update, and delete addresses from an interactive TUI
-- Search by name, email, birthday, phone, mobile, address, or custom field
+- Browse contacts in a keyboard-friendly Textual table
+- Search by choosing a field and entering one search value
+- Add, edit, and delete addresses from modal forms
 - Import and export address data as `html`, `json`, or `csv`
-- Extend file I/O through the plugin registry in [`doost/plugins`](doost/plugins)
+- Extend file I/O through the plugin registry in
+  [`doost/plugins`](doost/plugins)
+
+## Screenshot
+
+![Doostan list output](doc/images/doostan.png)
 
 ## Requirements
 
@@ -29,8 +34,8 @@ Install the project from the repository root:
 python -m pip install .
 ```
 
-For local development, install it in editable mode and add the dev
-tools:
+For local development, install it in editable mode and add the
+dev tools:
 
 ```bash
 python -m pip install -e .
@@ -44,7 +49,7 @@ the project, `requirements.txt` is also available:
 python -m pip install -r requirements.txt
 ```
 
-## Quick Start
+## Running Doostan
 
 Launch the application:
 
@@ -64,28 +69,30 @@ Show the version:
 python doostan.py --version
 ```
 
-## Output Example
+## Main Workflows
 
-![Doostan list output](doc/images/doostan.png)
-
-## Commands
-
-The Textual application supports these workflows:
-
-- Search addresses by name, email, birthday, phone, mobile, address, or custom value
+- Search addresses by `Full name`, `Email`, `Birthday`, `Phone`,
+  `Mobile`, `Address`, or `Custom`
+- Apply or clear the current search from the sidebar
 - Add, edit, and delete addresses with modal forms
 - Import addresses from `html`, `json`, or `csv`
 - Export the current filtered result set to `html`, `json`, or `csv`
-- Navigate entirely from the keyboard with footer key hints
+- Navigate from the keyboard with footer key hints
 
-## Project Layout
+## Keyboard Shortcuts
 
-- [`doostan.py`](doostan.py): launcher for the Textual app
-- [`doost/tui.py`](doost/tui.py): Textual application and modal dialogs
-- [`doost/services.py`](doost/services.py): reusable address operations
-- [`doost/`](doost): core address, database, and formatting logic
-- [`doost/plugins/`](doost/plugins): import/export plugins and registry
-- [`tests/`](tests): unit tests
+- `a`: add address
+- `e`: edit selected address
+- `d`: delete selected address
+- `i`: import addresses
+- `x`: export current results
+- `r`: refresh
+- `q`: quit
+
+## Documentation
+
+- General project usage: this `README.md`
+- Design and technical notes: [doc/README.md](doc/README.md)
 
 ## Development
 
@@ -104,3 +111,4 @@ ruff check .
 ## License
 
 This project is licensed under the terms of the [MIT License](LICENSE).
+

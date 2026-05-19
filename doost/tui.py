@@ -18,6 +18,24 @@ from doost.plugins.io import ProgressCallback
 from doost.services import AddressFilters, AddressService
 
 TRANSFER_PROGRESS_GRADIENT = Gradient.from_colors("#f2b84b", "#f07f4f", "#5fd0b3", quality=80)
+FILTER_FIELD_OPTIONS = [
+    ("Full name", "name"),
+    ("Email", "email"),
+    ("Birthday", "birthday"),
+    ("Phone", "phone"),
+    ("Mobile", "mobile"),
+    ("Address", "address"),
+    ("Custom", "custom"),
+]
+FILTER_FIELD_PLACEHOLDERS = {
+    "name": "Full name contains...",
+    "email": "Email contains...",
+    "birthday": "Birthday: YYYY-MM-DD",
+    "phone": "Phone contains...",
+    "mobile": "Mobile contains...",
+    "address": "Address contains...",
+    "custom": "Custom contains...",
+}
 
 
 def format_address_details(entry: Address) -> str:
@@ -296,15 +314,8 @@ class DoostanApp(App[None]):
                 yield Static("", id="stats", classes="sidebar-status")
                 yield Static("Find", classes="panel-title")
                 with Horizontal(classes="filter-row"):
-                    yield Input(placeholder="Name contains...", id="filter-name")
-                    yield Input(placeholder="Email contains...", id="filter-email")
-                yield Input(placeholder="Birthday: YYYY-MM-DD", id="filter-birthday")
-                with Horizontal(classes="filter-row"):
-                    yield Input(placeholder="Phone contains...", id="filter-phone")
-                    yield Input(placeholder="Mobile contains...", id="filter-mobile")
-                with Horizontal(classes="filter-row"):
-                    yield Input(placeholder="Address contains...", id="filter-address")
-                    yield Input(placeholder="Custom contains...", id="filter-custom")
+                    yield Select(FILTER_FIELD_OPTIONS, allow_blank=False, value="name", id="filter-field")
+                    yield Input(placeholder=FILTER_FIELD_PLACEHOLDERS["name"], id="filter-value")
                 with Horizontal(classes="sidebar-actions"):
                     yield Button("Apply", id="apply-filters", variant="primary")
                     yield Button("Clear", id="clear-filters")
@@ -333,15 +344,20 @@ class DoostanApp(App[None]):
         self.service.close()
 
     def current_filters(self) -> AddressFilters:
-        return AddressFilters(
-            name=self.query_one("#filter-name", Input).value.strip(),
-            email=self.query_one("#filter-email", Input).value.strip(),
-            birthday=self.query_one("#filter-birthday", Input).value.strip(),
-            phone=self.query_one("#filter-phone", Input).value.strip(),
-            mobile=self.query_one("#filter-mobile", Input).value.strip(),
-            address=self.query_one("#filter-address", Input).value.strip(),
-            custom=self.query_one("#filter-custom", Input).value.strip(),
-        )
+        filter_value = self.query_one("#filter-value", Input).value.strip()
+        if not filter_value:
+            return AddressFilters()
+
+        return AddressFilters(**{self._selected_filter_field(): filter_value})
+
+    def _selected_filter_field(self) -> str:
+        selected_value = self.query_one("#filter-field", Select).value
+        if isinstance(selected_value, str) and selected_value in FILTER_FIELD_PLACEHOLDERS:
+            return selected_value
+        return "name"
+
+    def _sync_filter_placeholder(self) -> None:
+        self.query_one("#filter-value", Input).placeholder = FILTER_FIELD_PLACEHOLDERS[self._selected_filter_field()]
 
     def selected_address(self) -> Address | None:
         if self.selected_address_id is None:
@@ -453,16 +469,9 @@ class DoostanApp(App[None]):
         if button_id == "apply-filters":
             self.refresh_table()
         elif button_id == "clear-filters":
-            for widget_id in (
-                "#filter-name",
-                "#filter-email",
-                "#filter-birthday",
-                "#filter-phone",
-                "#filter-mobile",
-                "#filter-address",
-                "#filter-custom",
-            ):
-                self.query_one(widget_id, Input).value = ""
+            self.query_one("#filter-field", Select).value = "name"
+            self.query_one("#filter-value", Input).value = ""
+            self._sync_filter_placeholder()
             self.refresh_table()
         elif button_id == "add":
             self.action_add_address()
@@ -476,18 +485,14 @@ class DoostanApp(App[None]):
             self.action_export_addresses()
 
     def on_input_submitted(self, event: Input.Submitted) -> None:
-        if event.input.id in {
-            "filter-name",
-            "filter-email",
-            "filter-birthday",
-            "filter-phone",
-            "filter-mobile",
-            "filter-address",
-            "filter-custom",
-        }:
+        if event.input.id == "filter-value":
             self.refresh_table()
 
     def on_select_changed(self, event: Select.Changed) -> None:
+        if event.select.id == "filter-field":
+            self._sync_filter_placeholder()
+            return
+
         if event.select.id not in {"import-menu", "export-menu"} or event.value == Select.BLANK:
             return
 

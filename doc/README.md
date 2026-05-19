@@ -1,10 +1,13 @@
-# Doostan – Technical Documentation
+# Doostan Design Notes
+
+This document covers the application design and internal structure. For
+installation, running the app, and user-facing usage, see the [project README](../README.md).
 
 ## Overview
 
 Doostan is a terminal address book backed by SQLite and a
 [Textual](https://textual.textualize.io/) TUI. The application supports
-listing, filtering, adding, editing, deleting, importing, and exporting
+listing, searching, adding, editing, deleting, importing, and exporting
 address entries.
 
 The codebase is organized around four layers:
@@ -12,7 +15,16 @@ The codebase is organized around four layers:
 1. `doostan.py` launches the app.
 2. `doost/tui.py` owns the Textual UI and modal workflows.
 3. `doost/services.py` exposes the address-oriented application API.
-4. `doost/db.py`, `doost/models.py`, and `doost/plugins/` handle persistence and file I/O.
+4. `doost/db.py`, `doost/models.py`, and `doost/plugins/` handle
+   persistence and file I/O.
+
+## Design Goals
+
+- Keep data local and simple by default with SQLite storage.
+- Favor keyboard-first interaction through a Textual TUI.
+- Separate UI, application logic, and persistence clearly enough to test
+  each layer independently.
+- Keep import and export extensible through a small plugin registry.
 
 ## Data Model
 
@@ -79,16 +91,27 @@ Filtering is represented by `AddressFilters`, which supports:
 - `custom`
 - `notes`
 
-## TUI
+The service layer can combine multiple fields at once. The current TUI
+intentionally exposes a simpler search interaction and maps one selected
+sidebar field into `AddressFilters` at a time.
 
-[`doost/tui.py`](../doost/tui.py) keeps the Doostan interaction model
-applied to address records:
+## TUI Design
 
-- Sidebar filters for name, email, birthday, phone, mobile, address, and custom data
-- Main table showing `Name`, `Email`, `Birthday`, `Phone`, `Mobile`, `Custom`, and `ID`
-- Detail panel for the selected record, including birthday, postal address, and notes
-- Modal add/edit forms
-- Import/export dialogs and progress feedback
+[`doost/tui.py`](../doost/tui.py) keeps the interaction model applied to
+address records:
+
+- A sidebar with selected-record details, result count, search controls,
+  and import/export menus
+- A search row with a dropdown for `Full name`, `Email`, `Birthday`,
+  `Phone`, `Mobile`, `Address`, or `Custom`, plus one value input
+- `Apply` and `Clear` actions for the current search term
+- A main table showing `Name`, `Email`, `Birthday`, `Phone`, `Mobile`,
+  `Custom`, and `ID`
+- Modal screens for add, edit, delete confirmation, file actions, and
+  progress reporting
+
+This design keeps the primary view compact while still exposing the full
+address record in the selected-item details panel and modal screens.
 
 Key bindings:
 
@@ -103,8 +126,8 @@ Key bindings:
 ## Import / Export Plugins
 
 The plugin registry in [`doost/plugins/registry.py`](../doost/plugins/registry.py)
-is unchanged. The built-in plugins serialize address entries in
-these formats:
+loads supported file adapters. The built-in plugins serialize address
+entries in these formats:
 
 - `csv`: `name,email,birthday,address,phone,mobile,custom,notes`
 - `json`: one object per address entry
@@ -113,7 +136,7 @@ these formats:
 Plugins implement the protocol in [`doost/plugins/io.py`](../doost/plugins/io.py)
 and are invoked exclusively through `AddressService`.
 
-## Testing
+## Testing Strategy
 
 The test suite covers:
 
