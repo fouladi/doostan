@@ -132,6 +132,7 @@ entries in these formats:
 - `csv`: `name,email,birthday,address,phone,mobile,custom,notes`
 - `json`: one object per address entry
 - `html`: one `<li>` per address entry with `data-*` attributes
+- `vcard`: one `BEGIN:VCARD` / `END:VCARD` block per address entry
 
 Plugins implement the protocol in [`doost/plugins/io.py`](../doost/plugins/io.py)
 and are invoked exclusively through `AddressService`.
@@ -142,7 +143,7 @@ The test suite covers:
 
 - database CRUD and filtering
 - service behavior and plugin delegation
-- CSV / JSON / HTML import-export plugins
+- CSV / JSON / HTML / vCard import-export plugins
 - TUI CRUD and dialog flows
 - terminal table formatting
 

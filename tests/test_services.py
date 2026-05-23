@@ -87,6 +87,14 @@ def test_service_export_and_import_json(tmp_path: Path) -> None:
         target.close()
 
 
+def test_service_available_formats_includes_vcard(tmp_path: Path) -> None:
+    service = AddressService(tmp_path / "peywand.db")
+    try:
+        assert "vcard" in service.available_formats()
+    finally:
+        service.close()
+
+
 def test_service_passes_progress_callback_to_plugins(tmp_path: Path, monkeypatch) -> None:
     service = AddressService(tmp_path / "peywand.db")
     import_events: list[tuple[int, int | None]] = []
