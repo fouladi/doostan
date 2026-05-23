@@ -141,7 +141,9 @@ class AddressFormScreen(ModalScreen[AddressFormData | None]):
             )
             yield Input(value=self.entry.phone if self.entry else "", placeholder="Phone", id="address-phone")
             yield Input(value=self.entry.mobile if self.entry else "", placeholder="Mobile", id="address-mobile")
-            yield Input(value=self.entry.address if self.entry else "", placeholder="Postal address", id="address-address")
+            yield Input(
+                value=self.entry.address if self.entry else "", placeholder="Postal address", id="address-address"
+            )
             yield Input(
                 value=self.entry.custom if self.entry else "",
                 placeholder="Custom: client;family",
@@ -572,7 +574,7 @@ class DoostanApp(App[None]):
         self.refresh_table(preferred_address_id=updated.id)
         self.notify(f"Updated '{updated.name}'.")
 
-    def _handle_delete_result(self, confirmed: bool) -> None:
+    def _handle_delete_result(self, confirmed: bool | None) -> None:
         entry = self.selected_address()
         if not confirmed or entry is None or entry.id is None:
             return

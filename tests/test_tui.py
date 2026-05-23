@@ -3,7 +3,7 @@ from pathlib import Path
 
 from textual.widgets import DataTable, Input, Select, Static
 
-from doost.tui import AddressDetailScreen, FileTransferProgressScreen, DoostanApp
+from doost.tui import AddressDetailScreen, DoostanApp, FileTransferProgressScreen
 
 
 def test_tui_crud_and_filter_flow(tmp_path: Path) -> None:
@@ -37,7 +37,15 @@ def test_tui_crud_and_filter_flow(tmp_path: Path) -> None:
                 "Custom",
                 "ID",
             ]
-            assert table.get_row("1") == ["Example Person", "person@example.com", "1990-01-02", "123", "456", "client", "1"]
+            assert table.get_row("1") == [
+                "Example Person",
+                "person@example.com",
+                "1990-01-02",
+                "123",
+                "456",
+                "client",
+                "1",
+            ]
             details = str(app.query_one("#details", Static).renderable)
             assert "Example Person" in details
             assert "1990-01-02" in details
@@ -114,7 +122,7 @@ def test_tui_default_size_keeps_import_export_accessible(tmp_path: Path) -> None
             app.query_one("#export-menu", Select).value = "json"
             await pilot.pause(0.05)
             assert app.screen.query_one("#file-path", Input).placeholder == "/path/to/file.json"
-            app.screen.action_cancel()
+            await pilot.press("escape")
             await pilot.pause(0.05)
 
             app.query_one("#import-menu", Select).value = "csv"
@@ -136,7 +144,7 @@ def test_tui_format_menus_reset_and_drive_file_extension(tmp_path: Path) -> None
             await pilot.pause(0.05)
             assert export_menu.value == Select.BLANK
             assert app.screen.query_one("#file-path", Input).placeholder == "/path/to/file.csv"
-            app.screen.action_cancel()
+            await pilot.press("escape")
             await pilot.pause(0.05)
 
             import_menu = app.query_one("#import-menu", Select)

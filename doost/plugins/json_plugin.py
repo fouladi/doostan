@@ -1,4 +1,5 @@
 import json
+from collections.abc import Mapping
 from pathlib import Path
 
 from doost import db
@@ -7,12 +8,30 @@ from doost.plugins.io import ProgressCallback, report_progress
 from doost.plugins.registry import register
 
 
+def _string_value(item: object, key: str, *, required: bool = False) -> str:
+    if not isinstance(item, Mapping):
+        if required:
+            raise ValueError(f"Invalid value for {key}")
+        return ""
+
+    value: object = ""
+    for item_key, item_value in item.items():
+        if item_key == key:
+            value = item_value
+            break
+
+    if isinstance(value, str):
+        return value
+    if required:
+        raise ValueError(f"Invalid value for {key}")
+    return ""
+
+
 class JSONPlugin:
     format = "json"
 
     def import_data(self, path: Path, session_factory, progress_callback: ProgressCallback | None = None) -> None:
-        """Read address entries from a JSON file and insert them into the database.
-        """
+        """Read address entries from a JSON file and insert them into the database."""
         data = json.loads(path.read_text(encoding="utf-8"))
 
         if not isinstance(data, list):
@@ -24,16 +43,19 @@ class JSONPlugin:
         with session_factory() as session:
             for index, item in enumerate(data, start=1):
                 try:
+                    if not isinstance(item, Mapping):
+                        continue
+
                     address = Address(
                         id=None,
-                        name=item["name"].strip(),
-                        email=item["email"].strip(),
-                        birthday=parse_birthday(item.get("birthday", "")),
-                        address=item.get("address", "").strip(),
-                        phone=item.get("phone", "").strip(),
-                        mobile=item.get("mobile", "").strip(),
-                        custom=item.get("custom", "").strip(),
-                        notes=item.get("notes", "").strip(),
+                        name=_string_value(item, "name", required=True).strip(),
+                        email=_string_value(item, "email", required=True).strip(),
+                        birthday=parse_birthday(_string_value(item, "birthday")),
+                        address=_string_value(item, "address").strip(),
+                        phone=_string_value(item, "phone").strip(),
+                        mobile=_string_value(item, "mobile").strip(),
+                        custom=_string_value(item, "custom").strip(),
+                        notes=_string_value(item, "notes").strip(),
                     )
                     if not address.name or not address.email:
                         continue
@@ -41,7 +63,7 @@ class JSONPlugin:
                         session,
                         address,
                     )
-                except (KeyError, ValueError):
+                except ValueError:
                     # Missing fields or duplicate entry
                     pass
                 finally:

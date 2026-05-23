@@ -54,7 +54,7 @@ class CSVPlugin:
                     if not address.name or not address.email:
                         continue
                     db.insert_address(session, address)
-                except (KeyError, ValueError):
+                except KeyError, ValueError:
                     # Missing fields or duplicate entry
                     continue
                 finally:

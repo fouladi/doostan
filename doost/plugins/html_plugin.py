@@ -130,16 +130,14 @@ class HTMLPlugin:
         with path.open("w", encoding="utf-8") as fh:
             for index, address in enumerate(addresses, start=1):
                 fh.write(
-                    (
-                        f'<li data-name="{escape(address.name, quote=True)}" '
-                        f'data-email="{escape(address.email, quote=True)}" '
-                        f'data-birthday="{escape(format_birthday(address.birthday), quote=True)}" '
-                        f'data-phone="{escape(address.phone, quote=True)}" '
-                        f'data-mobile="{escape(address.mobile, quote=True)}" '
-                        f'data-custom="{escape(address.custom, quote=True)}" '
-                        f'data-notes="{escape(address.notes, quote=True)}">'
-                        f"{escape(address.address)}</li>\n"
-                    )
+                    f'<li data-name="{escape(address.name, quote=True)}" '
+                    f'data-email="{escape(address.email, quote=True)}" '
+                    f'data-birthday="{escape(format_birthday(address.birthday), quote=True)}" '
+                    f'data-phone="{escape(address.phone, quote=True)}" '
+                    f'data-mobile="{escape(address.mobile, quote=True)}" '
+                    f'data-custom="{escape(address.custom, quote=True)}" '
+                    f'data-notes="{escape(address.notes, quote=True)}">'
+                    f"{escape(address.address)}</li>\n"
                 )
                 report_progress(progress_callback, index, total)
 
