@@ -10,14 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.2.0] - 2026-05-23
 
-* Adding `vcard` Plugin for more compatibility with other address books tools.
+### Added
+
+* `vcard` plugin for improved compatibility with other address book tools.
+* Import and export contacts in *RFC 6350* `vCard 4.0` format, with
+  compatibility for older sample-style vCards on import.
 
 ## [1.1.0] - 2026-05-19
 
 ### Added
 
-* Pull-Down menu in stead of input fields for searching elements of
-  an address.
+* Pull-down menu instead of separate input fields for searching
+  address elements.
 
 ## [1.0.0] - 2026-05-11
 

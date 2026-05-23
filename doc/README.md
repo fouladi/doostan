@@ -132,7 +132,7 @@ entries in these formats:
 - `csv`: `name,email,birthday,address,phone,mobile,custom,notes`
 - `json`: one object per address entry
 - `html`: one `<li>` per address entry with `data-*` attributes
-- `vcard`: one `BEGIN:VCARD` / `END:VCARD` block per address entry
+- `vcard`: RFC 6350 vCard 4.0 with one `BEGIN:VCARD` / `END:VCARD` block per address entry
 
 Plugins implement the protocol in [`doost/plugins/io.py`](../doost/plugins/io.py)
 and are invoked exclusively through `AddressService`.

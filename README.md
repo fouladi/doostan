@@ -13,7 +13,7 @@ The name `doostan` is Persian for `friends`.
 - Browse contacts in a keyboard-friendly Textual table
 - Search by choosing a field and entering one search value
 - Add, edit, and delete addresses from modal forms
-- Import and export address data as `html`, `json`, `csv`, or `vcard`
+- Import and export address data as `html`, `json`, `csv`, or RFC 6350 `vcard`
 - Extend file I/O through the plugin registry in
   [`doost/plugins`](doost/plugins)
 
@@ -75,8 +75,8 @@ python doostan.py --version
   `Mobile`, `Address`, or `Custom`
 - Apply or clear the current search from the sidebar
 - Add, edit, and delete addresses with modal forms
-- Import addresses from `html`, `json`, `csv`, or `vcard`
-- Export the current filtered result set to `html`, `json`, `csv`, or `vcard`
+- Import addresses from `html`, `json`, `csv`, or RFC 6350 `vcard`
+- Export the current filtered result set to `html`, `json`, `csv`, or RFC 6350 `vcard`
 - Navigate from the keyboard with footer key hints
 
 ## Keyboard Shortcuts
