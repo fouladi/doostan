@@ -1,5 +1,7 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 from pathlib import Path
+
+from doost.metadata import read_project_metadata
 
 DEFAULT_BG_COLOR = "#303030"
 
@@ -7,9 +9,14 @@ DEFAULT_BG_COLOR = "#303030"
 def build_launcher_parser() -> ArgumentParser:
     """Build the CLI parser for launching the Textual application."""
 
+    project_metadata = read_project_metadata()
+    author_names = ", ".join(project_metadata.author_names) or "Unknown"
+
     parser = ArgumentParser(
         "doostan.py",
         description="Doostan Textual address book manager.",
+        epilog=f"Version: {project_metadata.version}\nAuthors: {author_names}",
+        formatter_class=RawTextHelpFormatter,
     )
     parser.add_argument(
         "--db-path",
