@@ -1,9 +1,9 @@
 """Tests for pw/db.py."""
 
+import sqlite3
 from collections.abc import Generator
 from datetime import date
 from pathlib import Path
-import sqlite3
 
 import pytest
 from sqlalchemy import create_engine
