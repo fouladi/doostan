@@ -21,7 +21,7 @@ def build_launcher_parser() -> ArgumentParser:
     parser.add_argument(
         "--db-path",
         default=str(Path.home() / ".doost.db"),
-        help="Path to the SQLite database file.",
+        help="Path to the DuckDB database file.",
     )
     parser.add_argument(
         "--version",

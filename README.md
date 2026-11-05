@@ -1,9 +1,8 @@
 # Doostan
 
-Doostan is a local-first terminal address book built around SQLite
-and [Textual](https://textual.textualize.io/). It lets you browse,
-search, edit, import, and export contact data without relying on a
-cloud sync service.
+Doostan is a local-first terminal address book built around DuckDB and
+[Textual](https://textual.textualize.io/). It lets you browse, search, edit, import, and export
+contact data without relying on a cloud sync service.
 
 The name `doostan` is Persian for `friends`.
 
@@ -23,7 +22,7 @@ The name `doostan` is Persian for `friends`.
 
 ## Requirements
 
-- Python `3.14+`
+- Python `3.15+`
 - `pip`
 
 ## Installation

@@ -1,36 +1,22 @@
-from sqlalchemy import String, cast, create_engine, delete, event, select
+from sqlalchemy import String, cast, create_engine, delete, select
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import NullPool
 
 from .address import Address
 from .models import Addresses, Base
 
 
 def create_engine_and_session(db_path: str) -> tuple[Engine, sessionmaker[Session]]:
-    """Database is created automatically when the engine/session is created.
+    """Open the DuckDB database and build a session factory.
 
-    SQLite connections are not pooled (NullPool) so every connection is
-    closed as soon as the session that owns it is done. This prevents
-    ResourceWarning about unclosed database connections.
+    The database file is created automatically when the engine connects.
 
     Returns:
         A tuple of (engine, session_factory).
     """
-    engine = create_engine(f"sqlite:///{db_path}", future=True, poolclass=NullPool)
+    engine = create_engine(f"duckdb:///{db_path}", future=True)
     _ensure_schema(engine)
     return engine, sessionmaker(engine, expire_on_commit=False)
-
-
-@event.listens_for(Engine, "connect")
-def enable_sqlite_foreign_keys(dbapi_connection, connection_record):
-    """SQLite does not enable foreign keys by default.
-
-    To preserve the behavior (ON DELETE CASCADE), this function is added.
-    """
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
 
 
 def create_database(db_path: str) -> None:
@@ -38,9 +24,9 @@ def create_database(db_path: str) -> None:
 
     This operation is idempotent and safe to call multiple times.
     Args:
-        db_path: Path to the SQLite database file.
+        db_path: Path to the DuckDB database file.
     """
-    engine = create_engine(f"sqlite:///{db_path}", future=True, poolclass=NullPool)
+    engine = create_engine(f"duckdb:///{db_path}", future=True)
     try:
         _ensure_schema(engine)
     finally:
@@ -159,9 +145,7 @@ def get_addresses_by_phone(
         A list of matching address entries.
     """
     pattern = _pattern(query_string, is_strict)
-    stmt = select(Addresses).where(
-        Addresses.phone.ilike(pattern) | Addresses.mobile.ilike(pattern)
-    )
+    stmt = select(Addresses).where(Addresses.phone.ilike(pattern) | Addresses.mobile.ilike(pattern))
     return [row.to_dataclass() for row in session.scalars(stmt)]
 
 

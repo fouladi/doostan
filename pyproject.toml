@@ -1,6 +1,6 @@
 [project]
 name = "Doostan"
-version = "1.2.1"
+version = "2.0.0"
 authors = [{ name = "Farhad Fouladi", email = "fouladi@gmx.de" }]
 maintainers = [
     { name = "Farhad Fouladi", email = "fouladi@gmx.de" },
@@ -11,6 +11,8 @@ description = "Doostan - A terminal tool (command line) for managing addresses."
 readme = "README.md"
 dependencies = [
     "colored~=2.3",
+    "duckdb~=2.0",
+    "duckdb-engine~=0.17",
     "sqlalchemy~=2.0",
     "textual~=3.0",
 ]
@@ -18,23 +20,59 @@ dependencies = [
 [project.urls]
 "Homepage" = ""
 
+# ruff settings  --------------------------------------
 [tool.ruff]
-# E: pycodestyle error, F: pyflakes are 'select'ed by default
-lint.extend-select = [
-    "W",  # pycodestyle warning
-    "I",  # isort
-    "UP", # pyupgrade
-]
-lint.ignore = ["UP015"]  # Unnecessary open mode parameters
 line-length = 120
 fix = false
 show-fixes = true
-target-version = 'py314' # the python version to target, useful when using pyupgrade - default "py310"
-
+target-version = 'py315' # the python version to target, useful when using pyupgrade - default "py310"
 extend-exclude = [
 ]
 
-[tool.ruff.lint.per-file-ignores]
+[tool.ruff.lint]
+# E: pycodestyle error, F: pyflakes are 'select'ed by default
+extend-select = [
+    "W",   # pycodestyle warning
+    "I",   # isort - Missing required import (auto-fixable)
+    "UP",  # pyupgrade
+    "RUF100", # Unused noqa (auto-fixable)
+    "A",   # flake8-builtins - shadowing a builtin
+    "B",   # flake8-bugbear - likely bugs; includes B904 raise-without-from
+    "C4",  # flake8-comprehensions
+    "DTZ", # flake8-datetimez - naive datetime calls
+    "G",   # flake8-logging-format - needs 'logger-objects' below to see our adapters
+    "LOG", # flake8-logging
+    "PTH", # flake8-use-pathlib
+    "RET", # flake8-return
+    "SIM", # flake8-simplify
+    "TRY", # tryceratops
+]
+ignore = [
+    "UP015", # Unnecessary open mode parameters
+    "B019",  # cached-instance-method
+    # SIM112 wants UC4_MAIL_Anleihe spelled UC4_MAIL_ANLEIHE. Those mixed-case
+    # names are the variables the UC4 scheduler actually sets, so renaming them
+    # here without changing every job definition would break deployment.
+    "SIM112", # uncapitalized-environment-variables
+    # Builtin open() is current Python. Path.open() is a style preference and
+    # converting call sites that already hold a str buys nothing.
+    "PTH123", # builtin-open
+    # Would require a dedicated exception class for every message. That is an
+    # architectural opinion we have not adopted.
+    "TRY003", # raise-vanilla-args
+]
+
+# Each package exposes a 'log' adapter built by log_setup(). Without this ruff
+# cannot tell those are loggers, and the entire G ruleset silently reports
+# nothing - which is why the f-string log calls went unnoticed for so long.
+logger-objects = [
+    "dep871m.log",
+    "fusion.log",
+    "knockout.log",
+    "schwellenanpassung.log",
+    "stats.log",
+    "wmi.log",
+]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
@@ -48,9 +86,6 @@ pythonpath = "."
 # addopts = "--cov-report html"
 # addopts = "--capture=no"  # Option (-s) let to see print() output
 addopts = ["--cov=doost", "--cov-report", "term-missing"]
-filterwarnings = [
-    "ignore:unclosed database in <sqlite3.Connection object at:ResourceWarning",
-]
 testpaths = [
     "tests",
 ]

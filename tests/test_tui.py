@@ -176,6 +176,117 @@ def test_tui_toolbar_import_export_buttons_reuse_action_menus(tmp_path: Path) ->
     asyncio.run(scenario())
 
 
+async def _add_address(pilot, app, **fields: str) -> None:
+    await pilot.click("#add")
+    await pilot.pause(0.05)
+    for field, value in fields.items():
+        app.screen.query_one(f"#address-{field}", Input).value = value
+    await pilot.click("#save")
+    await pilot.pause(0.05)
+
+
+def _wait_for_table(app):
+    return app.query_one("#addresses-table", DataTable)
+
+
+def test_tui_export_then_import_roundtrip(tmp_path: Path) -> None:
+    """Drive a real export and import through the worker pipeline."""
+
+    async def scenario() -> None:
+        export_file = tmp_path / "people.json"
+
+        source_app = DoostanApp(tmp_path / "source.db")
+        async with source_app.run_test(size=(140, 40)) as pilot:
+            await pilot.pause(0.05)
+            await _add_address(
+                pilot,
+                source_app,
+                name="Export Me",
+                email="export@example.com",
+                birthday="1990-01-02",
+                phone="123",
+            )
+            assert _wait_for_table(source_app).row_count == 1
+
+            # Export via the toolbar button, filling in the file path.
+            await pilot.click("#toolbar-export")
+            await pilot.pause(0.05)
+            source_app.screen.query_one("#file-format", Select).value = "json"
+            source_app.screen.query_one("#file-path", Input).value = str(export_file)
+            await pilot.click("#submit")
+
+            # Wait for the background worker to finish writing the file.
+            for _ in range(100):
+                await pilot.pause(0.05)
+                if export_file.exists():
+                    break
+            assert export_file.exists()
+
+        # Import that file into a fresh database through the UI.
+        target_app = DoostanApp(tmp_path / "target.db")
+        async with target_app.run_test(size=(140, 40)) as pilot:
+            await pilot.pause(0.05)
+            assert _wait_for_table(target_app).row_count == 0
+
+            await pilot.click("#toolbar-import")
+            await pilot.pause(0.05)
+            target_app.screen.query_one("#file-format", Select).value = "json"
+            target_app.screen.query_one("#file-path", Input).value = str(export_file)
+            await pilot.click("#submit")
+
+            table = _wait_for_table(target_app)
+            for _ in range(100):
+                await pilot.pause(0.05)
+                if table.row_count == 1:
+                    break
+            assert table.row_count == 1
+            assert table.get_row("1")[0] == "Export Me"
+
+    asyncio.run(scenario())
+
+
+def test_tui_import_missing_file_reports_error(tmp_path: Path) -> None:
+    """A failing worker should surface an error and not crash the app."""
+
+    async def scenario() -> None:
+        app = DoostanApp(tmp_path / "doostan.db")
+        async with app.run_test(size=(140, 40)) as pilot:
+            await pilot.pause(0.05)
+
+            await pilot.click("#toolbar-import")
+            await pilot.pause(0.05)
+            app.screen.query_one("#file-format", Select).value = "json"
+            app.screen.query_one("#file-path", Input).value = str(tmp_path / "does-not-exist.json")
+            await pilot.click("#submit")
+
+            # Let the worker run and fail; the app should remain responsive.
+            for _ in range(60):
+                await pilot.pause(0.05)
+            assert app.query_one("#addresses-table", DataTable).row_count == 0
+
+    asyncio.run(scenario())
+
+
+def test_tui_edit_and_delete_without_selection_warn(tmp_path: Path) -> None:
+    async def scenario() -> None:
+        app = DoostanApp(tmp_path / "doostan.db")
+        async with app.run_test(size=(140, 40)) as pilot:
+            await pilot.pause(0.05)
+
+            # No rows exist, so edit/delete should no-op (warn) rather than raise.
+            await pilot.click("#edit")
+            await pilot.pause(0.05)
+            await pilot.click("#delete")
+            await pilot.pause(0.05)
+
+            # Refresh action and binding should also be safe with no data.
+            app.action_refresh()
+            await pilot.pause(0.05)
+            assert app.query_one("#addresses-table", DataTable).row_count == 0
+
+    asyncio.run(scenario())
+
+
 def test_progress_screen_status_text_handles_pending_and_counts() -> None:
     screen = FileTransferProgressScreen("Export", "/tmp/out.json", "Collecting current results...")
 

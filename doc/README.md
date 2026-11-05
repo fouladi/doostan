@@ -5,7 +5,7 @@ installation, running the app, and user-facing usage, see the [project README](.
 
 ## Overview
 
-Doostan is a terminal address book backed by SQLite and a
+Doostan is a terminal address book backed by DuckDB and a
 [Textual](https://textual.textualize.io/) TUI. The application supports
 listing, searching, adding, editing, deleting, importing, and exporting
 address entries.
@@ -20,7 +20,7 @@ The codebase is organized around four layers:
 
 ## Design Goals
 
-- Keep data local and simple by default with SQLite storage.
+- Keep data local and simple by default with DuckDB storage.
 - Favor keyboard-first interaction through a Textual TUI.
 - Separate UI, application logic, and persistence clearly enough to test
   each layer independently.
@@ -51,8 +51,17 @@ context. Birthdays use ISO date format: `YYYY-MM-DD`.
 ## Database Layer
 
 [`doost/models.py`](../doost/models.py) maps the dataclass to a single
-`addresses` table. [`doost/db.py`](../doost/db.py) exposes focused database
-operations:
+`addresses` table. The database is accessed through SQLAlchemy using the
+DuckDB dialect (`duckdb_engine`), so the ORM mapping and query code stay
+backend-agnostic.
+
+DuckDB has no `SERIAL`/auto-increment column type, so the `addresses`
+primary key is backed by an explicit SQLAlchemy `Sequence`
+(`addresses_id_seq`). The sequence is created alongside the table by
+`Base.metadata.create_all` and supplies the server-side default for new
+rows, which keeps `id` auto-assignment working as expected.
+
+[`doost/db.py`](../doost/db.py) exposes focused database operations:
 
 - `get_address_by_id`
 - `get_addresses_by_name`

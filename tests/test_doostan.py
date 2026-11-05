@@ -12,7 +12,7 @@ from doost.models import Base
 
 @pytest.fixture
 def session() -> Generator[Session]:
-    engine = create_engine("sqlite:///:memory:", future=True)
+    engine = create_engine("duckdb:///:memory:", future=True)
     Base.metadata.create_all(engine)
     SessionLocal = sessionmaker(engine, expire_on_commit=False)
     current_session = SessionLocal()

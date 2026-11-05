@@ -143,6 +143,32 @@ def test_json_import_skips_duplicate(tmp_path, session_factory, monkeypatch):
     assert call_count == 2
 
 
+def test_json_import_skips_non_mapping_items(tmp_path, session_factory, monkeypatch):
+    plugin = JSONPlugin()
+
+    input_file = tmp_path / "mixed.json"
+    input_file.write_text(
+        json.dumps(
+            [
+                "just a string",
+                42,
+                ["nested", "list"],
+                {"name": "Valid", "email": "valid@example.com"},
+            ]
+        )
+    )
+
+    inserted = []
+    monkeypatch.setattr(
+        "doost.plugins.json_plugin.db.insert_address",
+        lambda session, address: inserted.append(address),
+    )
+
+    plugin.import_data(input_file, session_factory)
+
+    assert [address.name for address in inserted] == ["Valid"]
+
+
 def test_json_export_empty(tmp_path):
     plugin = JSONPlugin()
     out = tmp_path / "empty.json"

@@ -1,10 +1,10 @@
 """Tests for pw/db.py."""
 
-import sqlite3
 from collections.abc import Generator
 from datetime import date
 from pathlib import Path
 
+import duckdb
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -16,7 +16,7 @@ from doost.models import Base
 
 @pytest.fixture
 def session() -> Generator[Session]:
-    engine = create_engine("sqlite:///:memory:", future=True)
+    engine = create_engine("duckdb:///:memory:", future=True)
     Base.metadata.create_all(engine)
     SessionLocal = sessionmaker(engine, expire_on_commit=False)
     current_session = SessionLocal()
@@ -63,7 +63,8 @@ def test_create_database_is_idempotent(tmp_path: Path) -> None:
 
 def test_create_database_migrates_existing_addresses_table(tmp_path: Path) -> None:
     db_path = tmp_path / "legacy.db"
-    with sqlite3.connect(db_path) as connection:
+    connection = duckdb.connect(str(db_path))
+    try:
         connection.execute(
             """
             CREATE TABLE addresses (
@@ -78,11 +79,16 @@ def test_create_database_migrates_existing_addresses_table(tmp_path: Path) -> No
             )
             """
         )
+    finally:
+        connection.close()
 
     db.create_database(str(db_path))
 
-    with sqlite3.connect(db_path) as connection:
-        columns = {row[1] for row in connection.execute("PRAGMA table_info(addresses)")}
+    connection = duckdb.connect(str(db_path))
+    try:
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(addresses)").fetchall()}
+    finally:
+        connection.close()
 
     assert "birthday" in columns
 
@@ -195,3 +201,71 @@ def test_update_address_not_found_raises(session: Session) -> None:
                 notes="",
             ),
         )
+
+
+def test_get_addresses_by_filter_phone_mobile_notes(session: Session) -> None:
+    _insert(session, "Alice", "alice@example.com", phone="1000", mobile="9000", notes="prefers email")
+    _insert(session, "Bob", "bob@example.com", phone="2000", mobile="8000", notes="call after 5pm")
+
+    by_phone = db.get_addresses_by_filter(session, phone="1000", is_strict=True)
+    assert [item.name for item in by_phone] == ["Alice"]
+
+    by_mobile = db.get_addresses_by_filter(session, mobile="8000", is_strict=True)
+    assert [item.name for item in by_mobile] == ["Bob"]
+
+    by_notes = db.get_addresses_by_filter(session, notes="%email%")
+    assert [item.name for item in by_notes] == ["Alice"]
+
+
+def test_get_addresses_by_filter_email_branch(session: Session) -> None:
+    _insert(session, "Alice", "alice@example.com")
+    _insert(session, "Bob", "bob@work.example")
+
+    results = db.get_addresses_by_filter(session, email="alice@example.com", is_strict=True)
+    assert [item.name for item in results] == ["Alice"]
+
+
+def test_get_address_by_id_not_found_raises(session: Session) -> None:
+    with pytest.raises(ValueError, match="not found"):
+        db.get_address_by_id(session, 4242)
+
+
+def test_update_address_rejects_duplicate(session: Session) -> None:
+    first = _insert(session, "Alice", "alice@example.com", custom="family")
+    second = _insert(session, "Bob", "bob@example.com", custom="work")
+
+    # Updating Bob to be identical to Alice must be rejected.
+    duplicate = Address(
+        id=None,
+        name=first.name,
+        email=first.email,
+        birthday=first.birthday,
+        address=first.address,
+        phone=first.phone,
+        mobile=first.mobile,
+        custom=first.custom,
+        notes=first.notes,
+    )
+    with pytest.raises(ValueError, match="already exists"):
+        db.update_address(session, second.id or 0, duplicate)
+
+
+def test_update_address_succeeds(session: Session) -> None:
+    entry = _insert(session, "Alice", "alice@example.com", custom="family")
+    updated = db.update_address(
+        session,
+        entry.id or 0,
+        Address(
+            id=None,
+            name="Alice Updated",
+            email="alice@example.com",
+            birthday=date(1991, 5, 6),
+            address="New Street",
+            phone="555",
+            mobile="666",
+            custom="friend",
+            notes="changed",
+        ),
+    )
+    assert updated.name == "Alice Updated"
+    assert updated.birthday == date(1991, 5, 6)
